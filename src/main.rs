@@ -71,7 +71,7 @@ fn process(character: &Character) -> Universe {
         let ref_to_norm: Vec<&str> = traits.iter().map(|x| x.as_str()).collect();
 
         if let Some(universe) = ref_to_norm.iter().find_map(|_trait| match *_trait {
-            "extra _arms" | "extra_head" | "green" => Some(HITCH_HICKER),
+            "extra_arms" | "extra_head" | "green" => Some(HITCH_HICKER),
             "hairy" => Some(STAR_WARS),
             "pointy_ears" => Some(RINGS),
             _ => None,

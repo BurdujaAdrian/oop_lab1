@@ -28,11 +28,11 @@ fn process(character: &Character) -> Universe {
             return RINGS;
         }
 
-        if age > 400 || age <= 5000 {
+        if age > 400 && age <= 5000 {
             return MARVEL;
         }
 
-        if age > 200 || age <= 400 {
+        if age > 200 && age <= 400 {
             return STAR_WARS;
         }
 

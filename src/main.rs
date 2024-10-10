@@ -28,14 +28,7 @@ fn process(character: &Character) -> Universe {
             return RINGS;
         }
 
-        if age > 400 && age <= 5000 {
-            return MARVEL;
-        }
-
-        if age > 200 && age <= 400 {
-            return STAR_WARS;
-        }
-        // 0 - 200 , cannot conclude anything
+        // 0 - 5000 , cannot conclude anything
     }
     if let Some(planet) = &character.planet {
         match planet.trim().to_lowercase().as_str() {
@@ -46,10 +39,12 @@ fn process(character: &Character) -> Universe {
             "asgard" => return MARVEL,
             "kashyyyk" | "endor" => return STAR_WARS,
             other => {
-                panic!("some other planet:{other}");
+                print!("some other planet:{other}");
             }
         }
+
         // conclusive
+        panic!("unreachable");
     }
 
     let mut maybe_traits: Option<Vec<String>> = None;
@@ -89,6 +84,8 @@ fn process(character: &Character) -> Universe {
         // if only blonde || tall || short || bulcky -> unknown
     }
 
+    // already filtered by planet, only age<5000 and
+    // blonde || tall || short || bulcky traits remaining
     if let Some(known_type) = character.isHumanoid {
         match known_type {
             true => {
@@ -97,25 +94,21 @@ fn process(character: &Character) -> Universe {
                         return MARVEL;
                     }
 
-                    if traits.contains(&"bulky".to_string()) {
-                        if traits.contains(&"short".to_string()) {
-                            return RINGS;
-                        }
-
-                        // otherwise it has to be a dwarf
+                    if traits.contains(&"bulky".to_string())
+                        || traits.contains(&"short".to_string())
+                    {
                         return RINGS;
                     }
 
-                    // any other trait is covered, blonde is either already filtered
-                    // or undefined
+                    // if its blonde(and respectivly humanoid) and under 5000
+                    // THEN it can be both elf and asgardian, but there are no other
+                    // remaining metrics to judge by so ambiguous
+                    return AMBIGUOUS;
                 }
-                //if let Some(age) = character.age {
-                //  if age > 100
-                //      not hitch, has to be rings or marvel
-                //      doesnt have planet nor any traits, cannot conlude
-                //  if age < 100
-                //      can be anything, cannot conclude
-            } // is one of: marvel, hitch(covered by traits and, ring
+                // has no traits
+                // cannot find from age < 5000 and humanity alone
+                return AMBIGUOUS;
+            }
             false => {
                 if let Some(traits) = maybe_traits {
                     if traits.contains(&"tall".to_string()) // dont format
@@ -127,17 +120,18 @@ fn process(character: &Character) -> Universe {
                     if traits.contains(&"bulky".to_string()) {
                         return HITCH_HICKER;
                     }
-                }
 
-                if let Some(_) = character.age {
-                    return UNKNOWN;
-                    // cannot find from age < 200 and non-humanoid alone
+                    // there is no blonde non-human
                 }
+                // any age(if any) is ambiguous
+                // cannot be over 400, no non-humanoid has such lifespan
+                // anything over 200 can be either from hitch or star wars
+                return AMBIGUOUS;
             }
         }
     }
-
-    return UNKNOWN;
+    // if no information is provided then its obviously ambiguous
+    return AMBIGUOUS;
 }
 
 // classification related things
@@ -146,12 +140,12 @@ enum Universe {
     HITCH_HICKER,
     RINGS,
     MARVEL,
-    UNKNOWN,
+    AMBIGUOUS,
 }
 
 fn main() {
     // read the test-input.json
-    let file_data = fs::read_to_string("resources/input.json").expect("failed to read file");
+    let file_data = fs::read_to_string("resources/test-input.json").expect("failed to read file");
     let data: Data = serde_json::from_str(file_data.as_str()).expect("failed to parse json");
 
     let mut star_wars: Vec<Character> = vec![];
@@ -167,7 +161,7 @@ fn main() {
             HITCH_HICKER => hitch_hicker.push(entry),
             RINGS => rings.push(entry),
             MARVEL => marvel.push(entry),
-            UNKNOWN => todo!("handle case when it fails"),
+            AMBIGUOUS => todo!("handle case when it fails"),
         }
     }
 
